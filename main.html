@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Home</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Welcome to Our Kiosk</h1>
+            <p class="subtitle">Your digital assistant for quick access to information and services</p>
+        </header>
+        
+        <main class="main-content">
+            <div class="service-grid">
+                <div class="service-card" onclick="selectService('info')">
+                    <div class="icon">ℹ️</div>
+                    <h3>Information</h3>
+                    <p>Get general information and help</p>
+                </div>
+                
+                <div class="service-card" onclick="selectService('directory')">
+                    <div class="icon">📍</div>
+                    <h3>Directory</h3>
+                    <p>Find locations and directions</p>
+                </div>
+                
+                <div class="service-card" onclick="selectService('services')">
+                    <div class="icon">🛎️</div>
+                    <h3>Services</h3>
+                    <p>Access available services</p>
+                </div>
+                
+                <div class="service-card" onclick="selectService('contact')">
+                    <div class="icon">📞</div>
+                    <h3>Contact</h3>
+                    <p>Get in touch with us</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <p>&copy; 2025 Kiosk System. Touch a service above to get started.</p>
+            <div class="current-time" id="currentTime"></div>
+        </footer>
+    </div>
+    
+    <script src="main.js"></script>
+</body>
+</html>
