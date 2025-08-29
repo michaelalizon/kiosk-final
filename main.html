@@ -7,13 +7,53 @@
     <link rel="stylesheet" href="main.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1 class="title">Welcome to Our Kiosk</h1>
-            <p class="subtitle">Your digital assistant for quick access to information and services</p>
-        </header>
-        
-        <main class="main-content">
+    <!-- Header with title and services menu toggle -->
+    <header class="main-header">
+        <div class="header-content">
+            <h1 class="main-title">Welcome to Our Kiosk</h1>
+            <button class="menu-toggle" onclick="toggleServicesMenu()" id="menuToggle">
+                <span class="menu-icon">☰</span>
+                <span class="menu-text">Services</span>
+            </button>
+        </div>
+        <div class="current-time" id="currentTime"></div>
+    </header>
+
+    <!-- Main slideshow section -->
+    <main class="slideshow-main">
+        <div id="loadingScreen" class="loading">
+            <div class="loading-spinner"></div>
+            <h2>Loading Latest Updates...</h2>
+            <p>Fetching news, events, and announcements</p>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+
+        <div id="slideshowContainer" class="slideshow-container" style="display: none;">
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">1</span>
+            </div>
+            
+            <div id="slidesContainer">
+                <!-- Slides will be dynamically inserted here -->
+            </div>
+            
+            <div class="slideshow-controls">
+                <button class="control-btn" onclick="previousSlide()">⏮️ Previous</button>
+                <button class="control-btn" onclick="toggleAutoPlay()" id="playPauseBtn">⏸️ Pause</button>
+                <button class="control-btn" onclick="nextSlide()">Next ⏭️</button>
+            </div>
+            
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </main>
+
+    <!-- Services menu overlay -->
+    <div class="services-overlay" id="servicesOverlay" style="display: none;">
+        <div class="services-container">
+            <div class="services-header">
+                <h2>Available Services</h2>
+                <button class="close-btn" onclick="toggleServicesMenu()">&times;</button>
+            </div>
             <div class="service-grid">
                 <div class="service-card" onclick="selectService('info')">
                     <div class="icon">ℹ️</div>
@@ -39,12 +79,86 @@
                     <p>Get in touch with us</p>
                 </div>
             </div>
-        </main>
-        
-        <footer class="footer">
-            <p>&copy; 2025 Kiosk System. Touch a service above to get started.</p>
-            <div class="current-time" id="currentTime"></div>
-        </footer>
+        </div>
+    </div>
+    
+    <script src="main.js"></script>
+</body>
+</html>
+<body>
+    <!-- Header with title and services menu toggle -->
+    <header class="main-header">
+        <div class="header-content">
+            <h1 class="main-title">Welcome to Our Kiosk</h1>
+            <button class="menu-toggle" onclick="toggleServicesMenu()" id="menuToggle">
+                <span class="menu-icon">☰</span>
+                <span class="menu-text">Services</span>
+            </button>
+        </div>
+        <div class="current-time" id="currentTime"></div>
+    </header>
+
+    <!-- Main slideshow section -->
+    <main class="slideshow-main">
+        <div id="loadingScreen" class="loading">
+            <div class="loading-spinner"></div>
+            <h2>Loading Latest Updates...</h2>
+            <p>Fetching news, events, and announcements</p>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+
+        <div id="slideshowContainer" class="slideshow-container" style="display: none;">
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">1</span>
+            </div>
+            
+            <div id="slidesContainer">
+                <!-- Slides will be dynamically inserted here -->
+            </div>
+            
+            <div class="slideshow-controls">
+                <button class="control-btn" onclick="previousSlide()">⏮️ Previous</button>
+                <button class="control-btn" onclick="toggleAutoPlay()" id="playPauseBtn">⏸️ Pause</button>
+                <button class="control-btn" onclick="nextSlide()">Next ⏭️</button>
+            </div>
+            
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </main>
+
+    <!-- Services menu overlay -->
+    <div class="services-overlay" id="servicesOverlay" style="display: none;">
+        <div class="services-container">
+            <div class="services-header">
+                <h2>Available Services</h2>
+                <button class="close-btn" onclick="toggleServicesMenu()">&times;</button>
+            </div>
+            <div class="service-grid">
+                <div class="service-card" onclick="selectService('info')">
+                    <div class="icon">ℹ️</div>
+                    <h3>Information</h3>
+                    <p>Get general information and help</p>
+                </div>
+                
+                <div class="service-card" onclick="selectService('directory')">
+                    <div class="icon">📍</div>
+                    <h3>Directory</h3>
+                    <p>Find locations and directions</p>
+                </div>
+                
+                <div class="service-card" onclick="selectService('services')">
+                    <div class="icon">�️</div>
+                    <h3>Services</h3>
+                    <p>Access available services</p>
+                </div>
+                
+                <div class="service-card" onclick="selectService('contact')">
+                    <div class="icon">📞</div>
+                    <h3>Contact</h3>
+                    <p>Get in touch with us</p>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script src="main.js"></script>

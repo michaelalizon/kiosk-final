@@ -1,8 +1,24 @@
+// Slideshow variables
+let slides = [];
+let currentSlideIndex = 0;
+let isAutoPlaying = true;
+let autoPlayInterval;
+let progressInterval;
+let config = {
+    autoAdvanceTime: 5000, // 5 seconds per slide
+    showControls: true,
+    enableTransitions: true,
+    transitionDuration: 1000 // 1 second transition
+};
+
 // Initialize the kiosk when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Kiosk system initialized');
     updateClock();
     setInterval(updateClock, 1000); // Update clock every second
+    
+    // Load slideshow data immediately
+    loadSlideshowData();
     
     // Add touch feedback for better kiosk experience
     addTouchFeedback();
@@ -27,9 +43,202 @@ function updateClock() {
     }
 }
 
+// Load slideshow data from Google Sheets
+function loadSlideshowData() {
+    console.log('Loading slideshow data...');
+    
+    // Call Google Apps Script function
+    google.script.run
+        .withSuccessHandler(onDataLoaded)
+        .withFailureHandler(onDataError)
+        .getSlideshowData();
+}
+
+// Handle successful data loading
+function onDataLoaded(data) {
+    console.log('Slideshow data loaded:', data);
+    
+    if (!data || data.length === 0) {
+        showError('No slideshow data found in the spreadsheet.');
+        return;
+    }
+    
+    slides = data;
+    initializeSlideshow();
+}
+
+// Handle data loading error
+function onDataError(error) {
+    console.error('Error loading slideshow data:', error);
+    showError('Failed to load slideshow data. Please check your internet connection and try again.');
+}
+
+// Show error message
+function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+}
+
+// Initialize the slideshow
+function initializeSlideshow() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const slideshowContainer = document.getElementById('slideshowContainer');
+    const slidesContainer = document.getElementById('slidesContainer');
+    const totalSlidesSpan = document.getElementById('totalSlides');
+    
+    // Hide loading screen
+    loadingScreen.style.display = 'none';
+    slideshowContainer.style.display = 'block';
+    
+    // Update total slides counter
+    totalSlidesSpan.textContent = slides.length;
+    
+    // Generate slide HTML
+    slidesContainer.innerHTML = slides.map((slide, index) => `
+        <div class="slide ${index === 0 ? 'active' : ''}" data-slide-index="${index}">
+            <div class="slide-image">
+                <img src="${slide.imageUrl}" alt="${slide.title}" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2NjYyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBOb3QgRm91bmQ8L3RleHQ+PC9zdmc+'; this.onerror=null;">
+            </div>
+            <div class="slide-content">
+                <h2 class="slide-title">${slide.title}</h2>
+                <p class="slide-description">${slide.description}</p>
+            </div>
+        </div>
+    `).join('');
+    
+    // Start auto-play
+    startAutoPlay();
+    updateSlideCounter();
+}
+
+// Navigate to next slide
+function nextSlide() {
+    const slides = document.querySelectorAll('.slide');
+    slides[currentSlideIndex].classList.remove('active');
+    
+    currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+    
+    slides[currentSlideIndex].classList.add('active');
+    updateSlideCounter();
+    resetProgress();
+}
+
+// Navigate to previous slide
+function previousSlide() {
+    const slides = document.querySelectorAll('.slide');
+    slides[currentSlideIndex].classList.remove('active');
+    
+    currentSlideIndex = (currentSlideIndex - 1 + slides.length) % slides.length;
+    
+    slides[currentSlideIndex].classList.add('active');
+    updateSlideCounter();
+    resetProgress();
+}
+
+// Toggle auto-play
+function toggleAutoPlay() {
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    
+    if (isAutoPlaying) {
+        stopAutoPlay();
+        playPauseBtn.textContent = '▶️ Play';
+    } else {
+        startAutoPlay();
+        playPauseBtn.textContent = '⏸️ Pause';
+    }
+    
+    isAutoPlaying = !isAutoPlaying;
+}
+
+// Start auto-play
+function startAutoPlay() {
+    if (autoPlayInterval) clearInterval(autoPlayInterval);
+    if (progressInterval) clearInterval(progressInterval);
+    
+    autoPlayInterval = setInterval(nextSlide, config.autoAdvanceTime);
+    startProgress();
+}
+
+// Stop auto-play
+function stopAutoPlay() {
+    if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = null;
+    }
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
+    resetProgress();
+}
+
+// Start progress bar animation
+function startProgress() {
+    const progressBar = document.getElementById('progressBar');
+    let progress = 0;
+    const increment = 100 / (config.autoAdvanceTime / 100);
+    
+    progressBar.style.width = '0%';
+    
+    progressInterval = setInterval(() => {
+        progress += increment;
+        progressBar.style.width = progress + '%';
+        
+        if (progress >= 100) {
+            progress = 0;
+        }
+    }, 100);
+}
+
+// Reset progress bar
+function resetProgress() {
+    const progressBar = document.getElementById('progressBar');
+    progressBar.style.width = '0%';
+    
+    if (isAutoPlaying) {
+        startProgress();
+    }
+}
+
+// Update slide counter
+function updateSlideCounter() {
+    const currentSlideSpan = document.getElementById('currentSlide');
+    currentSlideSpan.textContent = currentSlideIndex + 1;
+}
+
+// Toggle services menu
+function toggleServicesMenu() {
+    const overlay = document.getElementById('servicesOverlay');
+    
+    if (overlay.style.display === 'none' || overlay.style.display === '') {
+        overlay.style.display = 'flex';
+        overlay.style.animation = 'fadeIn 0.3s ease';
+        // Pause slideshow when menu is open
+        if (isAutoPlaying) {
+            stopAutoPlay();
+        }
+    } else {
+        overlay.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            // Resume slideshow when menu is closed
+            if (!isAutoPlaying) {
+                isAutoPlaying = true;
+                startAutoPlay();
+                document.getElementById('playPauseBtn').textContent = '⏸️ Pause';
+            }
+        }, 300);
+    }
+}
+
 // Handle service selection
 function selectService(serviceType) {
     console.log(`Service selected: ${serviceType}`);
+    
+    // Close services menu first
+    toggleServicesMenu();
     
     // Add visual feedback
     const cards = document.querySelectorAll('.service-card');
@@ -91,118 +300,6 @@ function showServiceModal(title, content) {
         </div>
     `;
     
-    // Add modal styles
-    const modalStyles = `
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80%;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            animation: slideIn 0.3s ease;
-        }
-        
-        .modal-header {
-            padding: 20px;
-            border-bottom: 2px solid #ecf0f1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-header h2 {
-            margin: 0;
-            color: #2c3e50;
-        }
-        
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 2rem;
-            cursor: pointer;
-            color: #7f8c8d;
-            padding: 0;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .close-btn:hover {
-            background: #ecf0f1;
-            color: #e74c3c;
-        }
-        
-        .modal-body {
-            padding: 20px;
-            color: #7f8c8d;
-            line-height: 1.6;
-        }
-        
-        .modal-footer {
-            padding: 20px;
-            border-top: 2px solid #ecf0f1;
-            text-align: center;
-        }
-        
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-            from { transform: scale(0.8) translateY(-50px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
-        }
-    `;
-    
-    // Add styles to head if not already present
-    if (!document.querySelector('#modal-styles')) {
-        const styleSheet = document.createElement('style');
-        styleSheet.id = 'modal-styles';
-        styleSheet.textContent = modalStyles;
-        document.head.appendChild(styleSheet);
-    }
-    
     document.body.appendChild(modal);
     
     // Close modal when clicking outside
@@ -226,29 +323,79 @@ function closeModal() {
 
 // Add touch feedback for better kiosk experience
 function addTouchFeedback() {
-    const serviceCards = document.querySelectorAll('.service-card');
-    
-    serviceCards.forEach(card => {
-        card.addEventListener('touchstart', function() {
-            this.style.transform = 'scale(0.95)';
-        });
+    // Will add touch feedback for service cards when they are loaded
+    setTimeout(() => {
+        const serviceCards = document.querySelectorAll('.service-card');
         
-        card.addEventListener('touchend', function() {
-            setTimeout(() => {
-                this.style.transform = 'scale(1)';
-            }, 100);
+        serviceCards.forEach(card => {
+            card.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+            });
+            
+            card.addEventListener('touchend', function() {
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 100);
+            });
         });
-    });
+    }, 1000);
 }
 
-// Add fade out animation to modal
-const additionalStyles = `
-    @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
+// Keyboard navigation
+document.addEventListener('keydown', function(event) {
+    switch(event.key) {
+        case 'ArrowLeft':
+            previousSlide();
+            break;
+        case 'ArrowRight':
+        case ' ':
+            nextSlide();
+            break;
+        case 'Escape':
+            // Close services menu if open
+            const overlay = document.getElementById('servicesOverlay');
+            if (overlay.style.display === 'flex') {
+                toggleServicesMenu();
+            }
+            break;
+        case 'p':
+        case 'P':
+            toggleAutoPlay();
+            break;
+        case 'm':
+        case 'M':
+            toggleServicesMenu();
+            break;
     }
-`;
+});
 
-const additionalStyleSheet = document.createElement('style');
-additionalStyleSheet.textContent = additionalStyles;
-document.head.appendChild(additionalStyleSheet);
+// Touch/swipe support for slideshow
+let startX = 0;
+let startY = 0;
+
+document.addEventListener('touchstart', function(event) {
+    startX = event.touches[0].clientX;
+    startY = event.touches[0].clientY;
+});
+
+document.addEventListener('touchend', function(event) {
+    if (!startX || !startY) return;
+    
+    const endX = event.changedTouches[0].clientX;
+    const endY = event.changedTouches[0].clientY;
+    
+    const diffX = startX - endX;
+    const diffY = startY - endY;
+    
+    // Minimum swipe distance
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        if (diffX > 0) {
+            nextSlide(); // Swipe left = next slide
+        } else {
+            previousSlide(); // Swipe right = previous slide
+        }
+    }
+    
+    startX = 0;
+    startY = 0;
+});
